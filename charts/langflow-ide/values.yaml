@@ -26,6 +26,14 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+route:
+  enabled: true
+  host: chart-example.local
+  tls:
+    enabled: false
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
 langflow:
   global:
     image:
@@ -66,13 +74,15 @@ langflow:
       prometheus.io/port: "9090"
       prometheus.io/path: "/metrics"
 
-    securityContext: {}
+    securityContext:
     # capabilities:
     #   drop:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
     # runAsUser: 1000
+      runAsUser: 0
+    #  fsGroup: 2000
 
     podSecurityContext: {}
 
@@ -95,7 +105,8 @@ langflow:
       enabled: true
       volume:
         size: "1Gi"
-        existingStorageClassName: "default"
+        #existingStorageClassName: "default"
+        
         # If you want the chart to create storage classes, then don't set
         # existingStorageClassName name and provide configuration values
         # for the storage class. The settings vary based on cloud
@@ -126,7 +137,13 @@ langflow:
         #     storageaccounttype: Premium_LRS
         #     kind: Managed
         #     cachingmode: ReadOnly
-        storageClass: {}
+        
+        # For Openshift:
+        storageClass:
+          provisioner: kubevirt.io.hostpath-provisioner
+          storagePool: local
+        
+        #storageClass: {}
 
   frontend:
     enabled: true
@@ -157,13 +174,14 @@ langflow:
     affinity: {}
     podAnnotations: {}
     podSecurityContext: {}
-    securityContext: {}
+    securityContext:
     # capabilities:
     #   drop:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-    # runAsUser: 1000
+      runAsUser: 0
+    #  fsGroup: 2000
 
 secretProvider:
   enabled: false

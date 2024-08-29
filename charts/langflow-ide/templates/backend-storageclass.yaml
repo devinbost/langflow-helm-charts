@@ -20,6 +20,9 @@ parameters:
   {{- if .Values.langflow.backend.sqlite.volume.storageClass.fsType }}
   fsType: {{ .Values.langflow.backend.sqlite.volume.storageClass.fsType }}
   {{- end }}
+  {{- if .Values.langflow.backend.sqlite.volume.storageClass.storagePool }}
+  storagePool: {{ .Values.langflow.backend.sqlite.volume.storageClass.storagePool }}
+  {{- end }}
   {{- if .Values.langflow.backend.sqlite.volume.storageClass.extraParams }}
 {{ toYaml .Values.langflow.backend.sqlite.volume.storageClass.extraParams | indent 2 }}
   {{- end }}
