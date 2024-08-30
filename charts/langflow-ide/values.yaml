@@ -81,28 +81,33 @@ langflow:
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
     # runAsUser: 1000
-      runAsUser: 0
+    #  runAsUser: 0
     #  fsGroup: 2000
 
     podSecurityContext: {}
 
     externalDatabase:
       # Compose in the SQLAlchemy format: https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls
-      enabled: false
-      driver: {}
-        # value: "postgresql"
-      port: {}
-      user: {}
-      password: {}
-        # valueFrom:                                                                                                                                                                                                                   │
-        #   secretKeyRef:                                                                                                                                                                                                              │
-        #    key: password                                                                                                                                                                                                            │
-        #    name: <secret-name>
-      database: {}
+      enabled: true
+      driver:
+        value: "postgresql"
+      host:
+        value: "langflow-ide-postgresql-service"
+      port:
+        value: "5432"
+      database:
+        value: "langflow-db"
+      user:
+        value: "langflow"
+      password:
+        valueFrom:
+          secretKeyRef:
+            key: "password"
+            name: "langflow-ide-postgresql-service"
 
 
     sqlite:
-      enabled: true
+      enabled: false
       volume:
         size: "1Gi"
         #existingStorageClassName: "default"
@@ -139,9 +144,9 @@ langflow:
         #     cachingmode: ReadOnly
         
         # For Openshift:
-        storageClass:
-          provisioner: kubevirt.io.hostpath-provisioner
-          storagePool: local
+        # storageClass:
+        #   provisioner: kubevirt.io.hostpath-provisioner
+        #   storagePool: local
         
         #storageClass: {}
 
@@ -180,11 +185,18 @@ langflow:
     #   - ALL
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
-      runAsUser: 0
+    #  runAsUser: 0
     #  fsGroup: 2000
 
 secretProvider:
   enabled: false
 
 postgresql:
-  enabled: false
+  enabled: true
+  fullnameOverride: "langflow-ide-postgresql-service"
+  auth:
+    username: "langflow"
+    password: "langflow-postgres-example"
+    database: "langflow-db"
+  volumePermissions:
+     enabled: true
