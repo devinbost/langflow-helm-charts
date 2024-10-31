@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langflow-runtime.fullname" . }}-mysql
+  labels:
+    app: mysql
+    {{- include "langflow-runtime.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.mysql.replicaCount }}
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+        {{- include "langflow-runtime.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: mysql
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
+          imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.mysql.service.port }}
+              name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_DATABASE
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+          volumeMounts:
+            - name: mysql-init
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: mysql-init
+          configMap:
+            name: mysql-init-configmap

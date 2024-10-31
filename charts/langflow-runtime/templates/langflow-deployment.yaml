@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langflow-runtime.fullname" . }}-langflow
+  labels:
+    app: langflow
+    {{- include "langflow-runtime.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.langflow.replicaCount }}
+  selector:
+    matchLabels:
+      app: langflow
+  template:
+    metadata:
+      labels:
+        app: langflow
+        {{- include "langflow-runtime.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "langflow-runtime.serviceAccountName" . }}
+      containers:
+        - name: langflow
+          image: "{{ .Values.langflow.image.repository }}:{{ .Values.langflow.image.tag }}"
+          imagePullPolicy: {{ .Values.langflow.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.langflow.service.port }}
+              name: http
+          envFrom:
+            - secretRef:
+                name: langflow-env-secret
+          volumeMounts:
+            - name: langflow-data
+              mountPath: /app/langflow
+            - name: huggingface
+              mountPath: /app/huggingface
+            - name: secure-connect-bundle
+              mountPath: /app/secure-connect-wikichat.zip
+              subPath: secure-connect-wikichat.zip
+      volumes:
+        - name: langflow-data
+          emptyDir: {}
+        - name: huggingface
+          emptyDir: {}
+        - name: secure-connect-bundle
+          secret:
+            secretName: secure-connect-bundle
+            items:
+              - key: secure-connect-wikichat.zip
+                path: secure-connect-wikichat.zip

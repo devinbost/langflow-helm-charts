@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langflow-runtime.fullname" . }}-ollama
+  labels:
+    app: ollama
+    {{- include "langflow-runtime.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.ollama.replicaCount }}
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+        {{- include "langflow-runtime.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: ollama
+          image: "{{ .Values.ollama.image.repository }}:{{ .Values.ollama.image.tag }}"
+          imagePullPolicy: {{ .Values.ollama.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.ollama.service.port }}
+              name: http
+          envFrom:
+            - secretRef:
+                name: langflow-env-secret
+          command: {{ toJson .Values.ollama.command }}
+          volumeMounts:
+            - name: models
+              mountPath: /root/.ollama/models
+      volumes:
+        - name: models
+          hostPath:
+            path: {{ .Values.ollama.volumes.models.hostPath }}
+            type: DirectoryOrCreate

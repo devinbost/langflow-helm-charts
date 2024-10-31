@@ -151,5 +151,31 @@ spec:
       {{- else }}
       storageClassName: "{{ template "langflow.fullname" . }}-sqlite"
       {{- end }}
+  
+  # In your langflow StatefulSet template
+  envFrom:
+    - secretRef:
+        name: {{ .Values.langflow.backend.envFromSecret }}
+  volumeMounts:
+    - name: langflow-data
+      mountPath: /app/langflow
+    - name: huggingface
+      mountPath: /app/huggingface
+    - name: env-file
+      mountPath: /app/.env
+      subPath: .env
+  volumes:
+    - name: langflow-data
+      persistentVolumeClaim:
+        claimName: langflow-data-pvc
+    - name: huggingface
+      persistentVolumeClaim:
+        claimName: huggingface-pvc
+    - name: env-file
+      secret:
+        secretName: langflow-env-secret
+        items:
+          - key: .env
+            path: .env
       
   {{- end }}

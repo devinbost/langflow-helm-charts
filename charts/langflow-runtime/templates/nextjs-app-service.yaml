@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "langflow-runtime.fullname" . }}-nextjs-app
+  labels:
+    app: nextjs-app
+    {{- include "langflow-runtime.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.nextjsApp.service.type }}
+  ports:
+    - port: {{ .Values.nextjsApp.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: nextjs-app

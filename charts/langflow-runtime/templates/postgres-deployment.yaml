@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "langflow-runtime.fullname" . }}-postgres
+  labels:
+    app: postgres
+    {{- include "langflow-runtime.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.postgresql.replicaCount }}
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        {{- include "langflow-runtime.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.postgresql.service.port }}
+              name: postgres
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: "{{ .Values.postgresql.env.POSTGRES_DB }}"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
